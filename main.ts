@@ -17,22 +17,32 @@ radio.onReceivedNumberDeprecated(function (receivedNumber) {
             led.unplot(hit_x, hit_y)
             soundExpression.hello.playUntilDone()
             radio.sendNumber(-1)
+            damage += 1
+            if (damage >= 5) {
+                state = 2
+                game.setScore(hit_count * 1000)
+                game.gameOver()
+            }
         } else {
             radio.sendNumber(-2)
         }
     } else {
         if (receivedNumber == -1) {
-            soundExpression.soaring.playUntilDone()
             hit_count += 1
             led.plot(0, 0)
             led.unplot(4, 0)
             state = 1
+            soundExpression.soaring.play()
             if (hit_count == 5) {
+                state = 2
                 basic.clearScreen()
-                while (true) {
-                    basic.showString("SIEGER!")
+                for (let index2 = 0; index2 < 3; index2++) {
+                    basic.showIcon(IconNames.Happy)
                     music.playMelody("C5 B A G F G A B ", 999)
+                    music.playMelody("E - E G A B E - ", 480)
                 }
+                game.setScore(hit_count * 1000)
+                game.gameOver()
             }
         } else {
             if (receivedNumber == -2) {
@@ -76,6 +86,7 @@ let index = 0
 let position_y = 0
 let position_x = 0
 let my_battle_area: number[] = []
+let damage = 0
 let state = 0
 let hit_count = 0
 let fire_y = 0
@@ -85,10 +96,8 @@ fire_x = 0
 fire_y = 1
 hit_count = 0
 state = 0
+damage = 0
 my_battle_area = []
-let strip = neopixel.create(DigitalPin.P0, 5, NeoPixelMode.RGB)
-strip.setBrightness(20)
-strip.showRainbow(1, 360)
 images.createImage(`
     # # . # #
     . # . # .
@@ -120,25 +129,27 @@ while (number_of_ships > 0) {
     }
 }
 basic.forever(function () {
-    led.unplot(fire_x, fire_y)
-    basic.pause(200)
-    led.plot(fire_x, fire_y)
-    basic.pause(200)
-    for (let index3 = 0; index3 <= 25; index3++) {
-        position_y = Math.floor(index3 / 5)
-        position_x = index3 - 5 * position_y
-        if (my_battle_area[index3] == 1) {
-            led.plot(position_x, position_y)
-        } else {
-            led.unplot(position_x, position_y)
+    if (state <= 1) {
+        led.unplot(fire_x, fire_y)
+        basic.pause(200)
+        led.plot(fire_x, fire_y)
+        basic.pause(200)
+        for (let index3 = 0; index3 <= 25; index3++) {
+            position_y = Math.floor(index3 / 5)
+            position_x = index3 - 5 * position_y
+            if (my_battle_area[index3] == 1) {
+                led.plot(position_x, position_y)
+            } else {
+                led.unplot(position_x, position_y)
+            }
         }
+        if (state == 0) {
+            led.plot(0, 0)
+            led.unplot(4, 0)
+        } else {
+            led.plot(4, 0)
+            led.unplot(0, 0)
+        }
+        basic.pause(200)
     }
-    if (state == 0) {
-        led.plot(0, 0)
-        led.unplot(4, 0)
-    } else {
-        led.plot(4, 0)
-        led.unplot(0, 0)
-    }
-    basic.pause(200)
 })
